@@ -820,11 +820,27 @@ function(file) {
 	up.className= 'cam-permanode-dnd-item';
 	goog.dom.appendChild(dnd, up);
 	var info = "name=" + file.name + " size=" + file.size + "; type=" + file.type;
+	var load_icon = "<img src='http://www.rfi.fr/sites/all/modules/maison/aef_magic_menu/theme/images/loading.gif' />"
+	var status_ok = "http://openiconlibrary.sourceforge.net/gallery2/open_icon_library-full/icons/png/22x22/status/dialog-clean.png";
+	var status_error = "http://openiconlibrary.sourceforge.net/gallery2/open_icon_library-full/icons/png/22x22/status/dialog-error-5.png";
+	var status_load = "http://www.rfi.fr/sites/all/modules/maison/aef_magic_menu/theme/images/loading.gif";
 
-	var setStatus = function(status) {
-		up.innerHTML = info + " " + status;
+	var setStatus = function(status, icon) {
+
+		switch(icon) {
+		case 0:
+			var load_icon = "<img src='" + status_ok + "' />";
+			break;
+		case 1:
+			var load_icon = "<img src='" + status_load + "' />";
+			break;
+		case 2:
+			var load_icon = "<img src='" + status_error + "' />";
+			break;
+		}
+		up.innerHTML = load_icon + info + " " + status;
 	};
-	setStatus("(scanning)");
+	setStatus("(scanning)", 1);
 
 	var onFail = function(msg) {
 		up.innerHTML = info + " <strong>fail:</strong> ";
@@ -832,22 +848,22 @@ function(file) {
 	};
 
 	var onGotFileSchemaRef = function(fileref) {
-		setStatus(" <strong>fileref: " + fileref + "</strong>");
+		setStatus(" <strong>fileref: " + fileref + "</strong>", 1);
 		this.connection_.createPermanode(
 			goog.bind(function(filepn) {
 				var doneWithAll = goog.bind(function() {
-					setStatus("- done");
+					setStatus("- done", 0);
 					this.describeBlob_();
 				}, this);
 				var addMemberToParent = function() {
-					setStatus("adding member");
+					setStatus("adding member", 1);
 					this.connection_.newAddAttributeClaim(
 						getPermanodeParam(), "camliMember", filepn,
 						doneWithAll, onFail
 					);
 				};
 				var makePermanode = goog.bind(function() {
-					setStatus("making permanode");
+					setStatus("making permanode", 1);
 					this.connection_.newSetAttributeClaim(
 						filepn, "camliContent", fileref,
 						goog.bind(addMemberToParent, this), onFail
@@ -863,7 +879,7 @@ function(file) {
 		goog.bind(onGotFileSchemaRef, this),
 		onFail,
 		function(contentsRef) {
-			setStatus("(checking for dup of " + contentsRef + ")");
+			setStatus("(checking for dup of " + contentsRef + ")", 1);
 		}
 	);
 }
